@@ -26,6 +26,7 @@
 #include "FancyActivation.hpp"
 #include "ResizeNearest.hpp"
 #include "Split.hpp"
+#include "DCNv2.hpp"
 #include "InstanceNormalization.hpp"
 
 namespace onnx2trt {
@@ -72,6 +73,7 @@ static bool registerBuiltinPlugin(const char* plugin_type,
 REGISTER_BUILTIN_PLUGIN("FancyActivation",       FancyActivationPlugin);
 REGISTER_BUILTIN_PLUGIN("ResizeNearest",         ResizeNearestPlugin);
 REGISTER_BUILTIN_PLUGIN("Split"        ,         SplitPlugin);
+REGISTER_BUILTIN_PLUGIN("DCNv2",                 DCNv2Plugin);
 REGISTER_BUILTIN_PLUGIN("InstanceNormalization", InstanceNormalizationPlugin);
 
 REGISTER_BUILTIN_NVPLUGIN("Concat", ConcatPlugin);
