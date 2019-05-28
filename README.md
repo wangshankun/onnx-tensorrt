@@ -1,11 +1,13 @@
 ## origin from: https://github.com/onnx/onnx-tensorrt
 
-# ADD 信息
+# 增加的内容：
 ## 增加DCNv2的插件;
     https://github.com/CharlesShang/DCNv2
 ## 增加centernet dla34执行例子
     https://github.com/xingyizhou/CenterNet
-
+## 参考首次commit信息
+    https://github.com/wangshankun/onnx-tensorrt/commit/23497e10d05e3038c2afb96ef31a0c601c876525
+    
 ### Download the code
 Clone the code from GitHub.
     git clone --recursive https://github.com/wangshankun/onnx-tensorrt
@@ -17,7 +19,10 @@ Clone the code from GitHub.
 ![image](https://github.com/wangshankun/onnx-tensorrt/blob/master/readme.jpg)
 
 
-
+### CenterNet导出onnx模型参考
+    https://github.com/xingyizhou/CenterNet/issues/77
+   
+   
 # TensorRT backend for ONNX
 
 Parses ONNX models for execution with [TensorRT](https://developer.nvidia.com/tensorrt).
