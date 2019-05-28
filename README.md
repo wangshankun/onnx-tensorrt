@@ -1,27 +1,21 @@
-#origin from: https://github.com/onnx/onnx-tensorrt
+## origin from: https://github.com/onnx/onnx-tensorrt
 
-# ADD
-
-##增加DCNv2的插件;
-
+# ADD 信息
+## 增加DCNv2的插件;
     https://github.com/CharlesShang/DCNv2
-
-##增加centernet dla34执行例子
-
+## 增加centernet dla34执行例子
     https://github.com/xingyizhou/CenterNet
-
 
 ### Download the code
 Clone the code from GitHub.
-
     git clone --recursive https://github.com/wangshankun/onnx-tensorrt
-
 ### Executable and libraries
-
     ./build.sh
 
-##与原始pytorch工程实现的CenterNet结果对比，差异在小数点后4位
+## 与原始pytorch工程实现的CenterNet结果对比，差异在小数点后4位
+### debug代码，调试信息和存储中间过程文件没有删除
 ![image](https://github.com/wangshankun/onnx-tensorrt/blob/master/readme.jpg)
+
 
 
 # TensorRT backend for ONNX
