@@ -1,37 +1,10 @@
-/*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
-
-//#pragma once
-
 #include "plugin.hpp"
 #include "serialize.hpp"
-
 #include <thrust/device_vector.h>
 #include <cassert>
-
 #include <cuda_runtime.h> 
-extern "C" {
 #include "cublas_v2.h" 
-}
+
 #define CHECK_CUDA(call) do {    \
   cudaError_t status = call; \
   if( status != cudaSuccess ) { \
@@ -57,7 +30,6 @@ extern "C" {
   } \
 }
 
-void printHexStr(const void* buf , size_t size);
 
 class DCNv2Plugin final : public onnx2trt::Plugin {
     int _deformable_groups;
@@ -66,19 +38,19 @@ class DCNv2Plugin final : public onnx2trt::Plugin {
     int _stride;
     int _kernel_size;
     std::vector<int> _outdims;
-    float *weight_data;
-    float *bias_data;
-    float * ones;
-    float * columns; 
-    float * weight_data_cuda;
-    float * bias_data_cuda;
     cublasHandle_t _cublas_handle;
-    float ** input_b;
-    float ** output_b;
-    float ** columns_b;
-    float ** ones_b;
-    float ** weight_b;
-    float ** bias_b;
+    void *  weight_data;
+    void *  bias_data;
+    void *  ones;
+    void *  columns; 
+    void *  weight_data_cuda;
+    void *  bias_data_cuda;
+    void ** input_b;
+    void ** output_b;
+    void ** columns_b;
+    void ** ones_b;
+    void ** weight_b;
+    void ** bias_b;
 protected:
     void deserialize(void const* serialData, size_t serialLength)
     {
@@ -126,8 +98,8 @@ public:
               int stride,
               int kernel_size,
               std::vector<int> outdims,
-              float* weight_data,
-              float* bias_data)
+              void* weight_data,
+              void* bias_data)
       : 
             _deformable_groups(deformable_groups),
             _dilation(dilation),
@@ -147,8 +119,21 @@ public:
   virtual int getNbOutputs() const override { return 1; }
   virtual nvinfer1::Dims getOutputDimensions(int index,
                                              const nvinfer1::Dims *inputs, int nbInputDims) override;
+
+  template <typename Dtype>
+  int do_initialize();
+
   int initialize() override;
+
   void terminate() override;
+  bool supportsFormat(nvinfer1::DataType type,
+                      nvinfer1::PluginFormat format) const override;
+                      
+  template <typename Dtype>
+  int do_enqueue(int batchSize,
+              const void *const *inputs, void **outputs,
+              void *workspace, cudaStream_t stream);
+
   int enqueue(int batchSize,
               const void *const *inputs, void **outputs,
               void *workspace, cudaStream_t stream) override;
