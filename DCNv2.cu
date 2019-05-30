@@ -196,16 +196,10 @@ void CudaBlas_gemmBatched<float>(cublasHandle_t handle,  cudaStream_t stream,
 
   cublasSetStream(handle, stream);
 
-struct timespec start, finish;
-clock_gettime(CLOCK_MONOTONIC, &start);
   CUBLAS_CALL(cublasSgemmBatched(handle,
                      opa, opb, (int)m, (int)n, (int)k,
                      &alpha, a, (int)lda, b, (int)ldb, &beta, c, (int)ldc,
                      (int)batchCount));
-clock_gettime(CLOCK_MONOTONIC, &finish);
-elapsed += (finish.tv_sec - start.tv_sec);
-elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-printf("elapsed time:%f\r\n",elapsed);
 }
 
 template<>
@@ -220,17 +214,10 @@ void CudaBlas_gemmBatched<__half>(cublasHandle_t handle,  cudaStream_t stream,
 
   cublasSetStream(handle, stream);
 
-struct timespec start, finish;
-double elapsed = 0;
-clock_gettime(CLOCK_MONOTONIC, &start);
   CUBLAS_CALL(cublasHgemmBatched(handle,
                      opa, opb, (int)m, (int)n, (int)k,
                      &alpha, a, (int)lda, b, (int)ldb, &beta, c, (int)ldc,
                      (int)batchCount));
-clock_gettime(CLOCK_MONOTONIC, &finish);
-elapsed += (finish.tv_sec - start.tv_sec);
-elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-printf("elapsed time:%f\r\n",elapsed);
 }
 
 template <typename Dtype>
