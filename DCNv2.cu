@@ -270,7 +270,8 @@ __global__ void cuda_memcpy_init(Dtype *cu_buf, int size, Dtype val) {
 template <typename Dtype>
 int DCNv2Plugin::do_initialize(){
     auto const& input_dims = this->getInputDims(0);
-    int batch      = 1;
+    assert(is_CHW(input_dims));
+    int batch      = this->getMaxBatchSize();
     int c_in       = input_dims.d[0];
     int c_out      = _outdims[0];
     int height_out = _outdims[1];
@@ -338,7 +339,7 @@ int DCNv2Plugin::do_enqueue(int batchSize,
                             const void *const *inputs, void **outputs,
                             void *workspace, cudaStream_t stream){
     auto const& input_dims = this->getInputDims(0);
-    int batch      = 1;
+    int batch      = batchSize;
     int c_in       = input_dims.d[0];
     int height_in  = input_dims.d[1];
     int width_in   = input_dims.d[2];
