@@ -288,17 +288,50 @@ int DCNv2Plugin::do_initialize(){
     CHECK_CUDA(cudaMalloc((void**)&weight_data_cuda, batch * c_in * _kernel_size * _kernel_size * c_out * sizeof(Dtype)));
     CHECK_CUDA(cudaMalloc((void**)&bias_data_cuda,   batch * c_out * sizeof(Dtype)));
     CHECK_CUDA(cudaMalloc((void**)&ones,          batch * height_out * width_out * sizeof(Dtype)));
-    CHECK_CUDA(cudaMalloc((void**)&columns,       batch * c_in * _kernel_size * _kernel_size * height_out * width_out * sizeof(Dtype)));
-
-    CHECK_CUDA(cudaMemcpy((Dtype*)weight_data_cuda, (Dtype*)weight_data, batch * c_in * _kernel_size * _kernel_size * c_out * sizeof(Dtype), cudaMemcpyHostToDevice));
-    CHECK_CUDA(cudaMemcpy((Dtype*)bias_data_cuda,   (Dtype*)bias_data,   batch * c_out * sizeof(Dtype), cudaMemcpyHostToDevice));
-
+    CHECK_CUDA(cudaMalloc((void**)&columns,  batch * c_in * _kernel_size * _kernel_size * height_out * width_out * sizeof(Dtype)));
     CUBLAS_CALL(cublasCreate(&_cublas_handle));
 
     int buf_size = batch * height_out * width_out;
     int blockSize = 256;
     int numBlocks = (buf_size + blockSize - 1) / (buf_size);
     cuda_memcpy_init<Dtype><<<numBlocks, blockSize>>>((Dtype*)ones, buf_size , (Dtype)1.0f);
+
+    int weight_count = batch * c_in * _kernel_size * _kernel_size * c_out;
+    if(getDataType()==nvinfer1::DataType::kHALF)
+    {
+        std::vector<__half> host_half_weight;
+        for (int i = 0; i < weight_count; i++)
+        {
+            host_half_weight.push_back(__float2half(((float*)weight_data)[i]));
+        }
+        CHECK_CUDA(cudaMemcpy((Dtype*)weight_data_cuda, host_half_weight.data(),
+                                  weight_count * sizeof(Dtype), cudaMemcpyHostToDevice));
+    }
+    if(getDataType()==nvinfer1::DataType::kFLOAT)
+    {
+
+        CHECK_CUDA(cudaMemcpy((Dtype*)weight_data_cuda, (Dtype*)weight_data,
+                                weight_count * sizeof(Dtype), cudaMemcpyHostToDevice));
+    }
+
+    int bias_count = batch * c_out;
+    if(getDataType()==nvinfer1::DataType::kHALF)
+    {
+        std::vector<__half> host_half_bias;
+        for (int i = 0; i < bias_count; i++)
+        {
+            host_half_bias.push_back(__float2half(((float*)bias_data)[i]));
+        }
+        
+        CHECK_CUDA(cudaMemcpy((__half*)bias_data_cuda, host_half_bias.data(),
+                                    bias_count * sizeof(__half), cudaMemcpyHostToDevice));
+    }
+    if(getDataType()==nvinfer1::DataType::kFLOAT)
+    {
+
+        CHECK_CUDA(cudaMemcpy((float*)bias_data_cuda,  (float*)bias_data,
+                                   bias_count * sizeof(float), cudaMemcpyHostToDevice));
+    }
     
     return 0;
 }
