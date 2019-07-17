@@ -399,7 +399,7 @@ namespace {
 bool registerBuiltinOpImporter(std::string op,
                                NodeImporter const& importer) {
   bool inserted = getBuiltinOpImporterMap().insert({op, importer}).second;
-  printf("%s\r\n",op.c_str());
+  //printf("%s\r\n",op.c_str());已经支持的OP
   assert(inserted);
   return inserted;
 }
@@ -1916,133 +1916,6 @@ DEFINE_BUILTIN_OP_IMPORTER(Split) {
   return outputs;
 }
 
-DEFINE_BUILTIN_OP_IMPORTER(DCNv2) {
- 
-    printf("inputs.size:%d \r\n",inputs.size());
-    printf("%x\r\n",inputs.at(0).tensor().getLocation());
-    printf("%x\r\n",inputs.at(1).weights().values);
-    printf("%x\r\n",inputs.at(2).weights().values);
-    printf("%x\r\n",inputs.at(3).tensor().getLocation());
-    printf("%x\r\n",inputs.at(4).tensor().getLocation());
-
-    ASSERT(inputs.at(0).is_tensor(),  ErrorCode::kUNSUPPORTED_NODE);
-    ASSERT(inputs.at(1).is_weights(), ErrorCode::kUNSUPPORTED_NODE);
-    ASSERT(inputs.at(2).is_weights(), ErrorCode::kUNSUPPORTED_NODE);
-    ASSERT(inputs.at(3).is_tensor(), ErrorCode::kUNSUPPORTED_NODE);
-    ASSERT(inputs.at(4).is_tensor(), ErrorCode::kUNSUPPORTED_NODE);
-   
-    nvinfer1::ITensor* input_ptr = &inputs.at(0).tensor();
-    auto kernel_weights = inputs.at(1).weights();
-    auto bias_weights = inputs.at(2).weights();
-    nvinfer1::ITensor* offset_ptr = &inputs.at(3).tensor();
-    nvinfer1::ITensor* mask_ptr = &inputs.at(4).tensor();
-
-    std::vector<nvinfer1::ITensor*> tensors;
-    for( auto& input : inputs ) 
-    {
-        if(input.is_tensor())
-        {
-            tensors.push_back(&input.tensor());
-        }
-    }
-
-    nvinfer1::Dims i_dims = input_ptr->getDimensions();
-    printf("input shape: ");
-    for(int i = 0; i < i_dims.nbDims; i++)
-    {
-        printf("%d ",i_dims.d[i]);
-    }
-    printf("\r\n");
-    
-    nvinfer1::Dims k_dims = kernel_weights.shape;
-    printf("kernel_weights shape: ");
-    for(int i = 0; i < k_dims.nbDims; i++)
-    {
-        printf("%d ", k_dims.d[i]);
-    }
-    printf("\r\n");
-    
-    nvinfer1::Dims b_dims = bias_weights.shape;
-    printf("bias_weights shape: ");
-    for(int i = 0; i < b_dims.nbDims; i++)
-    {
-        printf("%d ", b_dims.d[i]);
-    }
-    printf("\r\n");
-
-
-    nvinfer1::Dims o_dims = offset_ptr->getDimensions();
-    printf("offset shape: ");
-    for(int i = 0; i < o_dims.nbDims; i++)
-    {
-        printf("%d ",o_dims.d[i]);
-    }
-    printf("\r\n");
-
-    nvinfer1::Dims m_dims = mask_ptr->getDimensions();
-    printf("mask shape: ");
-    for(int i = 0; i < m_dims.nbDims; i++)
-    {
-        printf("%d ",m_dims.d[i]);
-    }
-    printf("\r\n");
-
-    const int batch    = 1;
-    const int channels = i_dims.d[0];
-    const int height   = i_dims.d[1];
-    const int width    = i_dims.d[2];
-
-    const int channels_out    = k_dims.d[0];
-    const int channels_kernel = k_dims.d[1];
-    const int kernel_h        = k_dims.d[2];
-    const int kernel_w        = k_dims.d[3];
-
-
-
-    OnnxAttrs attrs(node);
-    int deformable_groups, dilation, padding, stride;
-    if (attrs.count("deformable_groups"))
-    {
-        deformable_groups = attrs.get<int>("deformable_groups");
-        printf("%s  %d deformable_groups:%d\r\n",__FUNCTION__,__LINE__,deformable_groups);
-    } 
-    if (attrs.count("dilation"))
-    {
-        auto dilations = attrs.get<std::vector<int>>("dilation");
-        ASSERT(dilations[0] == dilations[1], ErrorCode::kUNSUPPORTED_NODE);
-        dilation = dilations[0];
-    }     
-    if (attrs.count("padding"))
-    {
-        auto paddings = attrs.get<std::vector<int>>("padding");
-        ASSERT(paddings[0] == paddings[1], ErrorCode::kUNSUPPORTED_NODE);
-        padding = paddings[0];
-    }     
-    if (attrs.count("stride"))
-    {
-        auto strides = attrs.get<std::vector<int>>("stride");
-        ASSERT(strides[0] == strides[1], ErrorCode::kUNSUPPORTED_NODE);
-        stride = strides[0];
-    }
-
-    const int height_out = (height + 2 * padding - (dilation * (kernel_h - 1) + 1)) / stride + 1;
-    const int width_out = (width + 2 * padding - (dilation * (kernel_w - 1) + 1)) / stride + 1;
-
-    std::vector<int> outdims{channels_out, height_out, width_out};
-
-    RETURN_FIRST_OUTPUT(ctx->addPlugin(new DCNv2Plugin(deformable_groups,
-                                                       dilation,
-                                                       padding, 
-                                                       stride,
-                                                       kernel_w, 
-                                                       outdims,
-						       (float*)(inputs.at(1).weights().values),
-						       (float*)(inputs.at(2).weights().values))
-						       ,
-                                       tensors));
-
-}
-
 DEFINE_BUILTIN_OP_IMPORTER(Sqrt) {
   return apply_unary_function(ctx, inputs.at(0), nvinfer1::UnaryOperation::kSQRT);
 }
@@ -2257,6 +2130,77 @@ DEFINE_BUILTIN_OP_IMPORTER(Upsample) {
   ASSERT(mode == "nearest", ErrorCode::kUNSUPPORTED_NODE);
   RETURN_FIRST_OUTPUT(
       ctx->addPlugin(new ResizeNearestPlugin(scale), {&inputs.at(0).tensor()}));
+}
+
+DEFINE_BUILTIN_OP_IMPORTER(DCNv2) {
+
+    ASSERT(inputs.at(0).is_tensor(),  ErrorCode::kUNSUPPORTED_NODE);
+    ASSERT(inputs.at(1).is_weights(), ErrorCode::kUNSUPPORTED_NODE);
+    ASSERT(inputs.at(2).is_weights(), ErrorCode::kUNSUPPORTED_NODE);
+    ASSERT(inputs.at(3).is_tensor(), ErrorCode::kUNSUPPORTED_NODE);
+    ASSERT(inputs.at(4).is_tensor(), ErrorCode::kUNSUPPORTED_NODE);
+   
+    nvinfer1::ITensor* input_ptr = &inputs.at(0).tensor();
+    auto kernel_weights = inputs.at(1).weights();
+    std::vector<nvinfer1::ITensor*> tensors;
+    for( auto& input : inputs ) 
+    {
+        if(input.is_tensor())
+        {
+            tensors.push_back(&input.tensor());
+        }
+    }
+
+    nvinfer1::Dims i_dims = input_ptr->getDimensions();
+    nvinfer1::Dims k_dims = kernel_weights.shape;
+
+    const int height   = i_dims.d[1];
+    const int width    = i_dims.d[2];
+
+    const int channels_out    = k_dims.d[0];
+    const int kernel_h        = k_dims.d[2];
+    const int kernel_w        = k_dims.d[3];
+
+    OnnxAttrs attrs(node);
+    int deformable_groups = 1, dilation = 1, padding = 1, stride = 1;
+    if (attrs.count("deformable_groups"))
+    {
+        deformable_groups = attrs.get<int>("deformable_groups");
+    } 
+    if (attrs.count("dilation"))
+    {
+        auto dilations = attrs.get<std::vector<int>>("dilation");
+        ASSERT(dilations[0] == dilations[1], ErrorCode::kUNSUPPORTED_NODE);
+        dilation = dilations[0];
+    }     
+    if (attrs.count("padding"))
+    {
+        auto paddings = attrs.get<std::vector<int>>("padding");
+        ASSERT(paddings[0] == paddings[1], ErrorCode::kUNSUPPORTED_NODE);
+        padding = paddings[0];
+    }     
+    if (attrs.count("stride"))
+    {
+        auto strides = attrs.get<std::vector<int>>("stride");
+        ASSERT(strides[0] == strides[1], ErrorCode::kUNSUPPORTED_NODE);
+        stride = strides[0];
+    }
+
+    const int height_out = (height + 2 * padding - (dilation * (kernel_h - 1) + 1)) / stride + 1;
+    const int width_out = (width + 2 * padding - (dilation * (kernel_w - 1) + 1)) / stride + 1;
+
+    std::vector<int> outdims{channels_out, height_out, width_out};
+
+    RETURN_FIRST_OUTPUT(ctx->addPlugin(new DCNv2Plugin(deformable_groups,
+                                                       dilation,
+                                                       padding, 
+                                                       stride,
+                                                       kernel_w, 
+                                                       outdims,
+                                                       inputs.at(1).weights().values,
+                                                       inputs.at(2).weights().values),
+                                       tensors));
+
 }
 
 } // namespace

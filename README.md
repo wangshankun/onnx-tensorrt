@@ -1,5 +1,23 @@
 ## origin from: https://github.com/onnx/onnx-tensorrt
 
+# 依赖环境
+##TensorRT
+ 如果要使用pycuda，那么需要提前在python环境中安装
+
+ 下载TensorRT-5.1.5.0，cd python; pip install tensorrt-5.1.5.0-cp37-none-linux\_x86\_64.whl
+## cuda
+
+## cublas 依赖fp16的gemm
+
+## onnx
+
+#绕过onnx的parse
+  /srv2/shankun/anaconda3/lib/python3.7/site-packages/onnx/checker.py", line 86, in check\_model
+     C.check_model(model.SerializeToString())
+
+    将C.check_model(model.SerializeToString()) 替换为 pass  
+
+
 # 增加的内容：
 ## 增加DCNv2的插件;
     https://github.com/CharlesShang/DCNv2
@@ -33,6 +51,7 @@ See also the [TensorRT documentation](https://docs.nvidia.com/deeplearning/sdk/#
 
 The TensorRT backend for ONNX can be used in Python as follows:
 
+## trt的python的接口不支持fp16，可以用trt的c++接口测试fp16的CenterNet
 ```python
 import onnx
 import onnx_tensorrt.backend as backend
