@@ -17,3 +17,4 @@ cd example_centernet_dla34
 chmod a+x run_example.py
 python run_example.py
 
+./build_demo_center_net.sh && ./center_net

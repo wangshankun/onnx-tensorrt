@@ -1,15 +1,10 @@
 ## origin from: https://github.com/onnx/onnx-tensorrt
 
-# 依赖环境
+# 依赖环境 TensorRT,cuda,cublas,onnx
 ##TensorRT
  如果要使用pycuda，那么需要提前在python环境中安装
 
  下载TensorRT-5.1.5.0，cd python; pip install tensorrt-5.1.5.0-cp37-none-linux\_x86\_64.whl
-## cuda
-
-## cublas 依赖fp16的gemm
-
-## onnx
 
 #绕过onnx的parse
   /srv2/shankun/anaconda3/lib/python3.7/site-packages/onnx/checker.py", line 86, in check\_model
@@ -17,6 +12,13 @@
 
     将C.check_model(model.SerializeToString()) 替换为 pass  
 
+# 性能
+     ’
+     因为内存有限制，1080ti最大batch不能过12，一般最大为8
+     当batch为4时候，TensorRT FP16 为22ms
+     当batch为1时候，TensorRT FP16 为11ms
+     当batch为1时候，TensorRT FP32 为15ms 
+     当batch为1时候，pytorch的CenterNet为24ms‘
 
 # 增加的内容：
 ## 增加DCNv2的插件;

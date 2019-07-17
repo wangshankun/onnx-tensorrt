@@ -44,8 +44,8 @@ int main(int argc, char* argv[])
     {
         return false;
     }
-    int maxBatchSize = 1;
-    int batchSize    = 1;
+    int maxBatchSize = 4;
+    int batchSize    = 4;
     trt_builder->setMaxBatchSize(maxBatchSize);
     trt_builder->setMaxWorkspaceSize(1 << 20);
     trt_builder->setFp16Mode(true);
