@@ -2,34 +2,6 @@
 #include <cuda_fp16.h>
 #include <cassert>
 
-#define CHECK_CUDA(call) do {    \
-  cudaError_t status = call; \
-  if( status != cudaSuccess ) { \
-    return status; \
-  } \
-} while(0)
-
-#define readfile(name, buffer, size) do\
-{\
-  FILE *out = fopen(name, "rb");\
-  if(out != NULL)\
-  {\
-        fread (buffer , sizeof(char), size, out);\
-        fclose (out);\
-  }\
-} while(0)
-
-#define savefile(name, buffer, size) do\
-{\
-  FILE *out = fopen(name, "wb");\
-  if(out != NULL)\
-  {\
-        fwrite (buffer , sizeof(char), size, out);\
-        fclose (out);\
-  }\
-} while(0)
-
-
 // TODO: Move this to a common header
 inline bool is_CHW(nvinfer1::Dims const& dims) {
   return (dims.nbDims == 3 &&
@@ -193,13 +165,6 @@ int ResizeBilinearPlugin::enqueue(int batchSize,
          static_cast<__half const*>( inputs[0]), istride, ibatchstride,
          static_cast<__half*      >(outputs[0]), ostride, obatchstride);
     }
-    if(istride == 32){
-    float* output_set = (float*)malloc(1*128*64*64*sizeof(float));
-    CHECK_CUDA(cudaMemcpy((float*)output_set, (float*)inputs[0],   1*128*32*32 * sizeof(float), cudaMemcpyDeviceToHost));
-    savefile("inputs_fp32.bin", output_set, 1*128*32*32 * sizeof(float));
-    CHECK_CUDA(cudaMemcpy((float*)output_set, (float*)outputs[0],  1*128*64*64 * sizeof(float), cudaMemcpyDeviceToHost));
-    savefile("outputs_fp32.bin", output_set, 1*128*64*64 * sizeof(float));
-    exit(0);}
     return cudaGetLastError() != cudaSuccess;
   }
   default: return -1;
