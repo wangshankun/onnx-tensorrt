@@ -70,6 +70,7 @@ set(ONNX2TRT_PATCH 0)
 set(PLUGIN_SOURCES
   FancyActivation.cu
   ResizeNearest.cu
+  ResizeBilinear.cu
   Split.cu
   DCNv2.cu
   InstanceNormalization.cpp
@@ -307,13 +308,13 @@ target_link_libraries(getSupportedAPITest PUBLIC ${PROTOBUF_LIB} nvonnxparser_st
 install(TARGETS onnx2trt
                 nvonnxparser        nvonnxparser_runtime
                 nvonnxparser_static nvonnxparser_runtime_static
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION    /usr/lib/aarch64-linux-gnu/
+        LIBRARY  DESTINATION   /usr/lib/aarch64-linux-gnu/
+        ARCHIVE  DESTINATION  /usr/lib/aarch64-linux-gnu/
 )
 
 install(FILES ${HEADERS}
-  DESTINATION include
+ DESTINATION   /usr/include/aarch64-linux-gnu/
 )
 
 SET(CPACK_GENERATOR "DEB")

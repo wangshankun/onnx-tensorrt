@@ -25,6 +25,7 @@
 #include "PluginFactory.hpp"
 #include "FancyActivation.hpp"
 #include "ResizeNearest.hpp"
+#include "ResizeBilinear.hpp"
 #include "Split.hpp"
 #include "DCNv2.hpp"
 #include "InstanceNormalization.hpp"
@@ -72,6 +73,7 @@ static bool registerBuiltinPlugin(const char* plugin_type,
 
 REGISTER_BUILTIN_PLUGIN("FancyActivation",       FancyActivationPlugin);
 REGISTER_BUILTIN_PLUGIN("ResizeNearest",         ResizeNearestPlugin);
+REGISTER_BUILTIN_PLUGIN("ResizeBilinear",        ResizeBilinearPlugin);
 REGISTER_BUILTIN_PLUGIN("Split"        ,         SplitPlugin);
 REGISTER_BUILTIN_PLUGIN("DCNv2",                 DCNv2Plugin);
 REGISTER_BUILTIN_PLUGIN("InstanceNormalization", InstanceNormalizationPlugin);

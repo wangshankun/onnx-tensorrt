@@ -25,6 +25,7 @@
 #include "plugin.hpp"
 #include "FancyActivation.hpp"
 #include "ResizeNearest.hpp"
+#include "ResizeBilinear.hpp"
 #include "Split.hpp"
 #include "DCNv2.hpp"
 #include "InstanceNormalization.hpp"
@@ -2127,10 +2128,22 @@ DEFINE_BUILTIN_OP_IMPORTER(Upsample) {
     }
   }
   auto scale = {height_scale, width_scale};
-  auto mode = attrs.get<std::string>("mode", "nearest");
-  ASSERT(mode == "nearest", ErrorCode::kUNSUPPORTED_NODE);
-  RETURN_FIRST_OUTPUT(
-      ctx->addPlugin(new ResizeNearestPlugin(scale), {&inputs.at(0).tensor()}));
+  auto mode = attrs.get<std::string>("mode");
+  if (mode == "nearest")
+  {
+      RETURN_FIRST_OUTPUT(
+          ctx->addPlugin(new ResizeNearestPlugin(scale), {&inputs.at(0).tensor()}));
+  }
+  else if (mode == "linear")
+  {
+      RETURN_FIRST_OUTPUT(
+          ctx->addPlugin(new ResizeBilinearPlugin(scale), {&inputs.at(0).tensor()}));
+  }
+  else
+  {
+      ASSERT(mode == "unsuppoered upsame mode", ErrorCode::kUNSUPPORTED_NODE);
+      return Status::success();
+  }
 }
 
 DEFINE_BUILTIN_OP_IMPORTER(DCNv2) {
